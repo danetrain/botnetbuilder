@@ -1,0 +1,5 @@
+This file contains usage information for my botnetbuilder tool. This tool incorporates nmap and metasploit functionality with the objective of quickly exploiting a subnet and installing remote access tools on exploited machines. The intent is to automate the low-effort steps that an attacker might take upon gaining access to a network.
+
+Requirements: metasploit and python-nmap are installed
+
+ 
