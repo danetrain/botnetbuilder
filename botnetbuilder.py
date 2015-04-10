@@ -30,7 +30,24 @@ def scan(subnet):
       live_hosts.append(nm[host])
       print "FOUND LIVE HOST: " + host
 
+      #list all service info#
+      #iterate over all protocols and ports#
+      for proto in nm[host].all_protocols():
+      	lport = list(nm[host][proto].keys())
+      	lport.sort()
+
+      	for port in lport:
+      		print('port: %s \tstate: %s \tname: %s' % (port, nm[host][proto][port]['state'], nm[host][proto][port]['name']))
+
+
   return live_hosts
+
+# Given a list of python-nmap objects, #
+# parse the msfconsole output and return #
+# a list of exploits for us to try#
+def get_exploit_list(live_hosts):
+
+	os_strings = ['linux', 'windows']
 
 
 
@@ -43,5 +60,6 @@ if __name__ == "__main__":
     sys.exit()
 
   subnet = sys.argv[1]
-  scan(subnet)
+  live_hosts = scan(subnet)
+  exploits = get_exploit_list(live_hosts)
     
